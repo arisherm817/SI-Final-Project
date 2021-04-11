@@ -25,29 +25,29 @@ def get_week_covid_cases(start_date, end_date):
         cases_dict[date[0]] = int(day['Cases'])
     return cases_dict
     
-def get_month_covid_cases(month, year):
+def get_month_covid_cases(year, month):
     month_cases = {}
     if month == "01" or month == "03" or month == "05" or month == "07" or month == "08" or month == "10" or month == "12":
-        month_cases = get_week_covid_cases("2021-{}-01".format(month), "2021-{}-08".format(month))
-        month_cases.update(get_week_covid_cases("2021-{}-09".format(month), "2021-{}-16".format(month)))
-        month_cases.update(get_week_covid_cases("2021-{}-17".format(month), "2021-{}-24".format(month)))
-        month_cases.update(get_week_covid_cases("2021-{}-25".format(month), "2021-{}-31".format(month)))
+        month_cases = get_week_covid_cases("{}-{}-01".format(year, month), "{}-{}-08".format(year, month))
+        month_cases.update(get_week_covid_cases("{}-{}-09".format(year, month), "{}-{}-16".format(year, month)))
+        month_cases.update(get_week_covid_cases("{}-{}-17".format(year, month), "{}-{}-24".format(year, month)))
+        month_cases.update(get_week_covid_cases("{}-{}-25".format(year, month), "{}-{}-31".format(year, month)))
     elif month == "02":
-        if year % 4 == 0:
-            month_cases = get_week_covid_cases("2021-{}-01".format(month), "2021-{}-08".format(month))
-            month_cases.update(get_week_covid_cases("2021-{}-09".format(month), "2021-{}-16".format(month)))
-            month_cases.update(get_week_covid_cases("2021-{}-17".format(month), "2021-{}-24".format(month)))
-            month_cases.update(get_week_covid_cases("2021-{}-25".format(month), "2021-{}-29".format(month)))
+        if int(year) % 4 == 0:
+            month_cases = get_week_covid_cases("{}-{}-01".format(year, month), "{}-{}-08".format(year, month))
+            month_cases.update(get_week_covid_cases("{}-{}-09".format(year, month), "{}-{}-16".format(year, month)))
+            month_cases.update(get_week_covid_cases("{}-{}-17".format(year, month), "{}-{}-24".format(year, month)))
+            month_cases.update(get_week_covid_cases("{}-{}-25".format(year, month), "{}-{}-29".format(year, month)))
         else :
-            month_cases = get_week_covid_cases("2021-{}-01".format(month), "2021-{}-08".format(month))
-            month_cases.update(get_week_covid_cases("2021-{}-09".format(month), "2021-{}-16".format(month)))
-            month_cases.update(get_week_covid_cases("2021-{}-17".format(month), "2021-{}-24".format(month)))
-            month_cases.update(get_week_covid_cases("2021-{}-25".format(month), "2021-{}-28".format(month)))
+            month_cases = get_week_covid_cases("{}-{}-01".format(year, month), "{}-{}-08".format(year, month))
+            month_cases.update(get_week_covid_cases("{}-{}-09".format(year, month), "{}-{}-16".format(year, month)))
+            month_cases.update(get_week_covid_cases("{}-{}-17".format(year, month), "{}-{}-24".format(year, month)))
+            month_cases.update(get_week_covid_cases("{}-{}-25".format(year, month), "{}-{}-28".format(year, month)))
     else:
-        month_cases = get_week_covid_cases("2021-{}-01".format(month), "2021-{}-08".format(month))
-        month_cases.update(get_week_covid_cases("2021-{}-09".format(month), "2021-{}-16".format(month)))
-        month_cases.update(get_week_covid_cases("2021-{}-17".format(month), "2021-{}-24".format(month)))
-        month_cases.update(get_week_covid_cases("2021-{}-25".format(month), "2021-{}-30".format(month)))
+        month_cases = get_week_covid_cases("{}-{}-01".format(year, month), "{}-{}-08".format(year, month))
+        month_cases.update(get_week_covid_cases("{}-{}-09".format(year, month), "{}-{}-16".format(year, month)))
+        month_cases.update(get_week_covid_cases("{}-{}-17".format(year, month), "{}-{}-24".format(year, month)))
+        month_cases.update(get_week_covid_cases("{}-{}-25".format(year, month), "{}-{}-30".format(year, month)))
     return month_cases
 
 
@@ -61,13 +61,10 @@ class TestFinalProject(unittest.TestCase):
         pass
 
     def test_get_num_covid_cases(self):
-
-        print(get_month_covid_cases("03"))
+        print(get_month_covid_cases('2020', '02'))
+        print(get_month_covid_cases('2021', '02'))
         
-
 def main():
-
-
     print("-----Unittest-------")
     unittest.main(verbosity=2)
     print("------------")
