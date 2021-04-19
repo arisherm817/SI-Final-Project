@@ -2,15 +2,15 @@ import json
 import unittest
 import os
 import requests
+import sqlite3
 
-#The Effect of Covid-19 on Uber Times and Prices
+#Covid-19 Cases and Vaccines
 #Team members: Lindsay Brenner and Ari Sherman 
 
-
-def get_uber_prices():
+def set_up_covid_table(cur, conn):
     pass
 
-def get_uber_time_estimates():
+def join_table(cur, conn):
     pass
 
 def get_week_covid_cases(start_date, end_date):
@@ -50,6 +50,8 @@ def get_month_covid_cases(year, month):
         month_cases.update(get_week_covid_cases("{}-{}-25".format(year, month), "{}-{}-30".format(year, month)))
     return month_cases
 
+def write_data_file(filename, cur, conn):
+    pass
 
 class TestFinalProject(unittest.TestCase):
     def test_get_uber_prices(self):
@@ -63,11 +65,23 @@ class TestFinalProject(unittest.TestCase):
     def test_get_num_covid_cases(self):
         print(get_month_covid_cases('2020', '02'))
         print(get_month_covid_cases('2021', '02'))
+        pass
         
 def main():
+    """Takes no inputs and returns nothing."""
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'XX')
+    cur = conn.cursor()
+
+    set_up_covid_table(cur, conn)
+
+    write_data_file("XX", cur, conn)
+
+    conn.close()
     print("-----Unittest-------")
     unittest.main(verbosity=2)
     print("------------")
+    conn.close()
 
 
 if __name__ == "__main__":
