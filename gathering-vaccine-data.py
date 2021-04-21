@@ -9,27 +9,38 @@ import csv
 #Covid-19 Cases and Vaccines
 #Team members: Lindsay Brenner and Ari Sherman 
 
-def set_up_database(name):
-    path = os.path.dirname(os.path.abspath(__file__))
-    conn = sqlite3.connect(path + '/' + name)
-    cur = conn.cursor()
-    return cur, conn
+# def set_up_database(name):
+#     path = os.path.dirname(os.path.abspath(__file__))
+#     conn = sqlite3.connect(path + '/' + name)
+#     cur = conn.cursor()
+#     return cur, conn
 
 def get_vaccine_data():
     data = {}
-    url = 'https://ourworldindata.org/explorers/coronavirus-data-explorer?tab=table&zoomToSelection=true&time=2020-03-01..latest&pickerSort=desc&pickerMetric=total_vaccinations_per_hundred&Metric=Vaccine+doses&Interval=Cumulative&Relative+to+Population=true&Align+outbreaks=false&country=USA~GBR~ISR~DEU~ARE~ARG~FRA'
+    url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'html.parser')
-    a = soup.find_all('div', class_ = 'Explorer')
-    b = a[0].find_all('tr')
-
-    for i in trs: 
-        country = i.find('td', class_ = 'entity sorted')
-        name = country.text.strip()
-        percent_row = i.find('td', class_ = 'dimension dimension-end')
-        percent = int(percent_row.text.strip('%'))
-        data[name] = percent
+    divs = soup.find('div', id = 'covid19-container')
+    table = divs.find('table')
+    trs = table.find_all('tr')
+    for i in trs[3:]: 
+        tds = i.find_all('td')
+        td = tds[0]
+        name = td.find('a')
+        country = name.text.strip()
+        number = tds[2]
+        percent = number.text.strip('%')
+        data[country] = percent
     print(data)
+
+    # for i in trs: 
+    #     country = i.find('td', class_ = 'entity sorted')
+    #     name = country.text.strip()
+    #     percent_row = i.find('td', class_ = 'dimension dimension-end')
+    #     percent = int(percent_row.text.strip('%'))
+    #     data[name] = percent
+    # print(data)
+    #d = soup.find_all('div', class_ = 'covid19-container')
     
 
 def fill_table(cur, conn): 
