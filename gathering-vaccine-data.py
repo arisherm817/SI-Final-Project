@@ -32,12 +32,12 @@ def get_vaccine_data():
         number = tds[2]
         percent = number.text.strip('%')
         number = (tds[1].text.replace(',', ''))
-        if percent == '--':
+        if percent == '--' or country == "EU":
             continue
         else:
             data[country] = (float(percent), int(number))
     sorted_data = sorted(data.keys(), key = lambda x: data[x][1], reverse = True)
-    for d in sorted_data[:100]:
+    for d in sorted_data[:125]:
         sorted_dict[d] = data[d]
     return sorted_dict
     
@@ -86,17 +86,49 @@ def set_up_vaccine_tables(cur, conn):
     cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country_id INTEGER PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
     conn.commit()
 
-def calculate():
-    pass
+def calculate_average_percent_vaccinated(cur):
+    cur.execute('SELECT percent FROM VaccineTable')
+    percent_list = cur.fetchall()
+    total_percent = 0
+    num_countries = 0
+    for p in percent_list:
+        total_percent += p[0]
+        num_countries += 1
+    percent = (total_percent/num_countries)
+    return round(percent, 2)
 
 def write_data_file(filename, cur, conn):
-    pass
+    cur.execute('SELECT country FROM CountryIds')
+    countries = cur.fetchall()
+    if len(countries) == 100:
+
+        path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+
+        outFile = open(path + filename, "w")
+        outFile.write("Average Percent Vaccinated Per Country\n")
+        outFile.write("=====================================================\n\n")
+        percent = str(calculate_average_percent_vaccinated(cur))
+        outFile.write(percent + "%" + "\n\n")
+        outFile.write("Top Ten Highest Vaccination Percentages in the World\n")
+        outFile.write("======================================================\n\n")
+        outFile.write("1. " + str(countries[0][0]) + "\n")
+        outFile.write("2. " + str(countries[1][0]) + "\n")
+        outFile.write("3. " + str(countries[2][0]) + "\n")
+        outFile.write("4. " + str(countries[3][0]) + "\n")
+        outFile.write("5. " + str(countries[4][0]) + "\n")
+        outFile.write("6. " + str(countries[5][0]) + "\n")
+        outFile.write("7. " + str(countries[6][0]) + "\n")
+        outFile.write("8. " + str(countries[7][0]) + "\n")
+        outFile.write("9. " + str(countries[8][0]) + "\n")
+        outFile.write("10. " + str(countries[9][0]) + "\n")
+        outFile.close()
 
 def main():
     cur, conn = set_up_database('vaccine.db')
     set_up_vaccine_tables(cur, conn)
     fill_country_id_table(cur, conn)
     fill_vaccine_table(cur,conn)
+    write_data_file("vaccine_data.txt", cur, conn)
     conn.close()
 
 

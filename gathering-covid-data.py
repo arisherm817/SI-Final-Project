@@ -7,7 +7,7 @@ import sqlite3
 #Team members: Lindsay Brenner and Ari Sherman 
 
 def set_up_covid_table(cur, conn):
-    cur.execute("CREATE TABLE IF NOT EXISTS Covid (country_id INTEGER PRIMARY KEY, country TEXT, confirmed INTEGER, deaths INTEGER, recovered INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Covid (country TEXT PRIMARY KEY, confirmed INTEGER, deaths INTEGER, recovered INTEGER)")
     cur.execute('SELECT country, country_id FROM CountryIds')
     countries = cur.fetchall()
     country_list = []
@@ -20,21 +20,20 @@ def set_up_covid_table(cur, conn):
     r = requests.get(url)
     data = r.text
     countries = json.loads(data)
-    country_string = ""
-    for c in country_list:
-        country_string += c + ' '
-    while len(used_countries) < 125: 
+    # country_string = ""
+    # for c in country_list:
+    #     country_string += c + ' '
+    while len(used_countries) < 105: 
         count = 0 
         for country in countries['Countries']:
             if country['Country'] in used_countries: 
                 continue
             else: 
-                if country['Country'] in country_string: 
+                if country['Country'] in country_list or country['Country'] == 'United States of America': 
                     confirmed = int(country['TotalConfirmed'])
                     deaths = int(country['TotalDeaths'])
                     recovered = int(country['TotalRecovered'])
-                    countryid = country_id_list[country_list.index(country['Country'])]
-                    cur.execute("INSERT OR IGNORE INTO Covid (country_id, country, confirmed, deaths, recovered) VALUES (?,?,?,?,?)", (countryid, country['Country'], confirmed, deaths, recovered))
+                    cur.execute("INSERT OR IGNORE INTO Covid (country, confirmed, deaths, recovered) VALUES (?,?,?,?)", (country['Country'], confirmed, deaths, recovered))
                     count += 1
                     used_countries.append(country['Country'])
             if count == 25: 
