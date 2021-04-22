@@ -31,10 +31,10 @@ def get_vaccine_data():
         number = tds[2]
         percent = number.text.strip('%')
         number = (tds[1].text.replace(',', ''))
-        if percent == '--':
+        #Ask abt EU
+        if percent == '--' or country == 'EU':
             continue
         else:
-            
             data[country] = (float(percent), int(number))
     return data
     
