@@ -17,6 +17,7 @@ def set_up_database(name):
 
 def get_vaccine_data():
     data = {}
+    sorted_dict = {}
     url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -31,12 +32,14 @@ def get_vaccine_data():
         number = tds[2]
         percent = number.text.strip('%')
         number = (tds[1].text.replace(',', ''))
-        #Ask abt EU
-        if percent == '--' or country == 'EU':
+        if percent == '--':
             continue
         else:
             data[country] = (float(percent), int(number))
-    return data
+    sorted_data = sorted(data.keys(), key = lambda x: data[x][1], reverse = True)
+    for d in sorted_data[:100]:
+        sorted_dict[d] = data[d]
+    return sorted_dict
     
 
 def fill_country_id_table(cur, conn): 
@@ -94,7 +97,6 @@ def main():
     set_up_vaccine_tables(cur, conn)
     fill_country_id_table(cur, conn)
     fill_vaccine_table(cur,conn)
-
     conn.close()
 
 
