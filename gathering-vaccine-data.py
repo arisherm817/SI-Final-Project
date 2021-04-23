@@ -37,24 +37,24 @@ def get_vaccine_data():
         else:
             data[country] = (float(percent), int(number))
     sorted_data = sorted(data.keys(), key = lambda x: data[x][1], reverse = True)
-    for d in sorted_data[:125]:
-        sorted_dict[d] = data[d]
+    for d in data:
+        if d in sorted_data[:125]:
+            sorted_dict[d] = (data[d], sorted_data.index(d)+1)
     return sorted_dict
     
 
-def fill_country_id_table(cur, conn): 
-    cur.execute("CREATE TABLE IF NOT EXISTS CountryIds (country_id INTEGER PRIMARY KEY, country TEXT)")
+def fill_country_rank_table(cur, conn): 
+    cur.execute("CREATE TABLE IF NOT EXISTS CountryRanks (country TEXT PRIMARY KEY, rank INTEGER)")
     countries = get_vaccine_data()
     countries_list = []
 
     while len(countries_list) < len(countries):
         count = 0
         for country in countries:
-                country_id = len(countries_list) + 1
                 if country in countries_list:
                     continue
                 else:
-                    cur.execute("INSERT OR IGNORE INTO CountryIds (country_id, country) VALUES (?,?)", (country_id, country))
+                    cur.execute("INSERT OR IGNORE INTO CountryRanks (country, rank) VALUES (?,?)", (country, countries[country][1]))
                     count += 1
                     countries_list.append(country)
                 if count == 25:
@@ -62,18 +62,17 @@ def fill_country_id_table(cur, conn):
     conn.commit()
     
 def fill_vaccine_table(cur, conn): 
-    cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country_id INTEGER PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country TEXT PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
     countries = get_vaccine_data()
     countries_list = []
 
     while len(countries_list) < len(countries):
         count = 0
         for country in countries:
-                country_id = len(countries_list) + 1
                 if country in countries_list:
                     continue
                 else:
-                    cur.execute("INSERT OR IGNORE INTO VaccineTable (country_id, vaccinated, percent) VALUES (?,?,?)", (country_id, countries[country][1], countries[country][0]))
+                    cur.execute("INSERT OR IGNORE INTO VaccineTable (country, vaccinated, percent) VALUES (?,?,?)", (country, countries[country][0][1], countries[country][0][0]))
                     count += 1
                     countries_list.append(country)
                 if count == 25:
@@ -82,8 +81,8 @@ def fill_vaccine_table(cur, conn):
 
 
 def set_up_vaccine_tables(cur, conn):
-    cur.execute("CREATE TABLE IF NOT EXISTS CountryIds (country_id INTEGER PRIMARY KEY, country TEXT)")
-    cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country_id INTEGER PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS CountryRanks (country TEXT PRIMARY KEY, rank INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country TEXT PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
     conn.commit()
 
 def calculate_average_percent_vaccinated(cur):
@@ -98,9 +97,9 @@ def calculate_average_percent_vaccinated(cur):
     return round(percent, 2)
 
 def write_data_file(filename, cur, conn):
-    cur.execute('SELECT country FROM CountryIds')
+    cur.execute('SELECT country FROM CountryRanks')
     countries = cur.fetchall()
-    if len(countries) == 100:
+    if len(countries) == 125:
 
         path = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
@@ -126,7 +125,7 @@ def write_data_file(filename, cur, conn):
 def main():
     cur, conn = set_up_database('vaccine.db')
     set_up_vaccine_tables(cur, conn)
-    fill_country_id_table(cur, conn)
+    fill_country_rank_table(cur, conn)
     fill_vaccine_table(cur,conn)
     write_data_file("vaccine_data.txt", cur, conn)
     conn.close()
