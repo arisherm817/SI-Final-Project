@@ -4,25 +4,25 @@ Top Ten COVID-19 Death Rates per Country
 1.  Mexico
 2.  Sudan
 3.  Egypt
-4.  Ecuador
-5.  Afghanistan
-6.  Bolivia
-7.  Zimbabwe
-8.  Bulgaria
-9.  Guatemala
-10.  Hungary
+4.  Somalia
+5.  Ecuador
+6.  Afghanistan
+7.  Bolivia
+8.  Zimbabwe
+9.  Bulgaria
+10.  Guatemala
 
 
-Top Ten Number of Confirmed Cases per Vaccinated Person per Country
+Top Ten Fewest Number of Confirmed Cases per Vaccinated Person per Country
 ======================================================
 
-1.  Canada
-2.  Bangladesh
-3.  Japan
-4.  Cambodia
-5.  Pakistan
-6.  Malaysia
-7.  Bahrain
-8.  Kazakhstan
-9.  Maldives
-10.  Malta
+1.  Bhutan
+2.  Fiji
+3.  Cambodia
+4.  Mauritius
+5.  New Zealand
+6.  Singapore
+7.  Thailand
+8.  Barbados
+9.  Finland
+10.  Angola

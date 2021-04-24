@@ -1,4 +1,4 @@
-Average Percent Vaccinated Per Country
+World Average Percent Vaccinated
 =====================================================
 
 13.58%
@@ -6,13 +6,13 @@ Average Percent Vaccinated Per Country
 Top Ten Highest Vaccination Percentages in the World
 ======================================================
 
-1. Afghanistan
-2. Angola
-3. Argentina
-4. Aruba
-5. Austria
-6. Azerbaijan
-7. Bahrain
-8. Bangladesh
-9. Barbados
-10. Belarus
+1. Seychelles
+2. Isle of Man
+3. Israel
+4. Bhutan
+5. Maldives
+6. United Kingdom
+7. Jersey
+8. Malta
+9. Aruba
+10. Chile

@@ -10,12 +10,15 @@ import csv
 #Team members: Lindsay Brenner and Ari Sherman 
 
 def set_up_database(name):
+    """Takes in the name of a database an input and returns the cursor and connection to the database."""
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path + '/' + name)
     cur = conn.cursor()
     return cur, conn
 
 def get_vaccine_data():
+    """Returns a dictionary with the key being the name of the country and the value being a tuple in the format (Percent Vaccinated, Total Vaccinations). """
+    """Uses BeautifulSoup to read the countries name, the countries percent vaccinated, and total vaccinations"""
     data = {}
     sorted_dict = {}
     url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
@@ -44,6 +47,7 @@ def get_vaccine_data():
     
 
 def fill_country_rank_table(cur, conn): 
+    """ Fills the Country Ranks table with the country names and their ranking for total number of vaccinations"""
     cur.execute("CREATE TABLE IF NOT EXISTS CountryRanks (country TEXT PRIMARY KEY, rank INTEGER)")
     countries = get_vaccine_data()
     countries_list = []
@@ -62,6 +66,7 @@ def fill_country_rank_table(cur, conn):
     conn.commit()
     
 def fill_vaccine_table(cur, conn): 
+    """ Fills the Vaccine Table table with the country names, the total number of vaccinations in the country, and the percent of the country population that is vaccinated"""
     cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country TEXT PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
     countries = get_vaccine_data()
     countries_list = []
@@ -81,11 +86,13 @@ def fill_vaccine_table(cur, conn):
 
 
 def set_up_vaccine_tables(cur, conn):
+    """Creates two tables. One table that contain the country vaccination rankings and another table that has vaccine data for each country """
     cur.execute("CREATE TABLE IF NOT EXISTS CountryRanks (country TEXT PRIMARY KEY, rank INTEGER)")
     cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country TEXT PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
     conn.commit()
 
 def calculate_average_percent_vaccinated(cur):
+    """Calculates the world average percent vaccinated"""
     cur.execute('SELECT percent FROM VaccineTable')
     percent_list = cur.fetchall()
     total_percent = 0
@@ -96,7 +103,15 @@ def calculate_average_percent_vaccinated(cur):
     percent = (total_percent/num_countries)
     return round(percent, 2)
 
+def sort_percentages(cur):
+    """Sorts the countries by percent vaccinated and returns a list of tuples with the country name and percent vaccinated """
+    cur.execute('SELECT country, percent FROM VaccineTable')
+    countries = cur.fetchall()
+    countries.sort(key = lambda x: x[1], reverse = True) 
+    return countries
+
 def write_data_file(filename, cur, conn):
+    """Wrties the world average percent vaccinated and the top ten high vaccination percentages to a filename that is given in the input"""
     cur.execute('SELECT country FROM CountryRanks')
     countries = cur.fetchall()
     if len(countries) == 125:
@@ -104,25 +119,27 @@ def write_data_file(filename, cur, conn):
         path = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
         outFile = open(path + filename, "w")
-        outFile.write("Average Percent Vaccinated Per Country\n")
+        outFile.write("World Average Percent Vaccinated\n")
         outFile.write("=====================================================\n\n")
         percent = str(calculate_average_percent_vaccinated(cur))
         outFile.write(percent + "%" + "\n\n")
         outFile.write("Top Ten Highest Vaccination Percentages in the World\n")
         outFile.write("======================================================\n\n")
-        outFile.write("1. " + str(countries[0][0]) + "\n")
-        outFile.write("2. " + str(countries[1][0]) + "\n")
-        outFile.write("3. " + str(countries[2][0]) + "\n")
-        outFile.write("4. " + str(countries[3][0]) + "\n")
-        outFile.write("5. " + str(countries[4][0]) + "\n")
-        outFile.write("6. " + str(countries[5][0]) + "\n")
-        outFile.write("7. " + str(countries[6][0]) + "\n")
-        outFile.write("8. " + str(countries[7][0]) + "\n")
-        outFile.write("9. " + str(countries[8][0]) + "\n")
-        outFile.write("10. " + str(countries[9][0]) + "\n")
+        country_list = sort_percentages(cur)
+        outFile.write("1. " + str(country_list[0][0]) + "\n")
+        outFile.write("2. " + str(country_list[1][0]) + "\n")
+        outFile.write("3. " + str(country_list[2][0]) + "\n")
+        outFile.write("4. " + str(country_list[3][0]) + "\n")
+        outFile.write("5. " + str(country_list[4][0]) + "\n")
+        outFile.write("6. " + str(country_list[5][0]) + "\n")
+        outFile.write("7. " + str(country_list[6][0]) + "\n")
+        outFile.write("8. " + str(country_list[7][0]) + "\n")
+        outFile.write("9. " + str(country_list[8][0]) + "\n")
+        outFile.write("10. " + str(country_list[9][0]) + "\n")
         outFile.close()
 
 def main():
+    """Calls the functions set_up_database(), set_up_vaccine_tables(), fill_country_rank_table(), fill_vaccine_table(), and write_data_file(). Closes the database connection. """
     cur, conn = set_up_database('vaccine.db')
     set_up_vaccine_tables(cur, conn)
     fill_country_rank_table(cur, conn)

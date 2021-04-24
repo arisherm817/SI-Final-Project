@@ -7,6 +7,7 @@ import sqlite3
 #Team members: Lindsay Brenner and Ari Sherman 
 
 def set_up_covid_table(cur, conn):
+    """Pulls data from Covid API and sets up table with covid data """
     cur.execute("CREATE TABLE IF NOT EXISTS Covid (country TEXT PRIMARY KEY, confirmed INTEGER, deaths INTEGER, recovered INTEGER)")
     cur.execute('SELECT country FROM CountryRanks')
     countries = cur.fetchall()
@@ -40,6 +41,7 @@ def set_up_covid_table(cur, conn):
     conn.commit()
     
 def calculate_death_rate(cur):
+    """Uses information form Covid table to calculate the Covid death rate. Returns country names and death rates in descending order"""
     cur.execute('SELECT country, confirmed, deaths FROM Covid')
     tup = cur.fetchall()
     death_rate_list = []
@@ -51,15 +53,17 @@ def calculate_death_rate(cur):
             new = (country[0], round(death_rate, 3))
             death_rate_list.append(new)
     sorted_list = sorted(death_rate_list, key = lambda x: x[1], reverse = True)
-    return (sorted_list[:10])
+    return sorted_list
 
 def join_table(cur, conn):
+    """Joins the Vaccine and Covid table. Returns a list of tuples with country names, total number vaccinated, and total number of confirmed cases """
     cur.execute("SELECT Covid.country, VaccineTable.vaccinated, Covid.confirmed FROM VaccineTable LEFT JOIN Covid ON VaccineTable.country = Covid.country") 
     results = cur.fetchall()
     conn.commit()
     return results
 
 def calculate_cases_per_vaccine(cur, conn): 
+    """Uses the joined table information to calculte the number of cases per vaccine in each country. Returns a list of tuples wiht the country name and the cases per vaccine"""
     results = join_table(cur, conn)
     cases_per_vaccine = {}
     for country in results: 
@@ -68,14 +72,15 @@ def calculate_cases_per_vaccine(cur, conn):
         else: 
             percent = (country[2] / country[1])
             cases_per_vaccine[country[0]] = round(percent, 3)
-        sorted_dict = sorted(cases_per_vaccine, key = lambda x: x[1])
-    return sorted_dict[:10]
+    sorted_dict = sorted(cases_per_vaccine.items(), key = lambda x: x[1])
+    return sorted_dict
 
 
 def write_data_file(filename, cur, conn):
+    """Writes the top ten Covid-19 death rates per country anf the top ten fewest number of confirmed cases per vaccinated person to the filename given in the input """
     cur.execute('SELECT country FROM Covid')
     countries = cur.fetchall()
-    if len(countries) == 108:
+    if len(countries) >= 100:
 
         path = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
@@ -85,22 +90,22 @@ def write_data_file(filename, cur, conn):
 
         death_rate = calculate_death_rate(cur)
         count = 1
-        for i in death_rate:  
+        for i in death_rate[:10]:  
             outFile.write(str(count) + '.  ' + str(i[0]) + "\n")
             count += 1
         outFile.write('\n\n')
        
-        outFile.write("Top Ten Number of Confirmed Cases per Vaccinated Person per Country\n")
+        outFile.write("Top Ten Fewest Number of Confirmed Cases per Vaccinated Person per Country\n")
         outFile.write("======================================================\n\n")
         cases_per = calculate_cases_per_vaccine(cur, conn)
         count = 1
-        for i in cases_per:  
-            outFile.write(str(count) + '.  ' + str(i) + "\n")
+        for i in cases_per[:10]:  
+            outFile.write(str(count) + '.  ' + str(i[0]) + "\n")
             count += 1
         outFile.close()
         
 def main():
-    """Takes no inputs and returns nothing."""
+    """Calls the functions set_up_covid_table(), calculate_death_rate(), calculate_cases_per_vaccine(), write_data_file(). Closes connection to database"""
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path + '/vaccine.db')
     cur = conn.cursor()
