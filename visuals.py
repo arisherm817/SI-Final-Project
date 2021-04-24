@@ -7,7 +7,7 @@ import csv
 import sqlite3
 import json
 
-#The Effect of Covid-19 on Uber Times and Prices
+#Covid-19 Cases and Vaccines
 #Team members: Lindsay Brenner and Ari Sherman 
 
 
@@ -50,9 +50,15 @@ def main():
             new = (country[0], round(death_rate, 3))
             death_rate_list.append(new)
     sorted_death_rate_list = sorted(death_rate_list, key = lambda x: x[1], reverse = True)
+    top_countries = []
+    deaths = []
+    for i in sorted_death_rate_list[:10]: 
+        top_countries.append(i[0])
+        deaths.append(i[1])
+    
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
+    figure = go.Figure()
+    figure.add_trace(go.Scatter(
         x=confirmed_list,
         y=vaccinated_list,
         marker=dict(color="blue", size=8),
@@ -61,11 +67,16 @@ def main():
         textposition = 'top center'
     ))
 
-    fig.update_layout(title = "Confirmed Cases vs. Number of Vaccinations",
+    figure.update_layout(title = "Confirmed Cases vs. Number of Vaccinations",
                         xaxis_title="Confirmed Cases", yaxis_title="Number of Vaccinations")
-    fig.update_xaxes(type='log')
-    fig.update_yaxes(type='log')
-    fig.show()
+    figure.update_xaxes(type='log')
+    figure.update_yaxes(type='log')
+    figure.show()
+
+    bar_chart_figure = go.Figure([go.Bar(y = deaths, x = top_countries)])
+    bar_chart_figure.update_traces(marker_color="lightskyblue", marker_line_color="royalblue", marker_line_width=3, opacity=.9)
+    bar_chart_figure.update_layout(title_text = "Top Ten Covid Death Rates", xaxis_title="Country", yaxis_title="Death Rate")
+    bar_chart_figure.show()
 
 
 if __name__ == "__main__":
