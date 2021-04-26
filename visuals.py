@@ -17,7 +17,7 @@ def main():
     conn = sqlite3.connect(path + '/vaccine.db')
     cur = conn.cursor()
 
-    cur.execute("SELECT Covid.country, VaccineTable.vaccinated, Covid.confirmed FROM VaccineTable LEFT JOIN Covid ON VaccineTable.country = Covid.country") 
+    cur.execute("SELECT VaccineNumberTable.country, VaccineNumberTable.vaccinated, Covid.confirmed FROM VaccineNumberTable LEFT JOIN Covid ON VaccineNumberTable.country_id = Covid.country_id") 
     results = cur.fetchall()
     conn.commit()
 
@@ -39,7 +39,7 @@ def main():
         confirmed_list.append(data[i][0])
         vaccinated_list.append(data[i][1])
 
-    cur.execute('SELECT country, confirmed, deaths FROM Covid')
+    cur.execute('SELECT country_id, confirmed, deaths FROM Covid')
     data1 = cur.fetchall()
     death_rate_list = []
     for country in data1: 
@@ -47,7 +47,10 @@ def main():
             continue 
         else: 
             death_rate = (country[2]/country[1])
-            new = (country[0], round(death_rate, 3))
+            statement = "SELECT country FROM VaccineNumberTable WHERE country_id = {}".format(country[0])
+            cur.execute(statement)
+            country1 = cur.fetchone()[0]
+            new = (country1, round(death_rate, 3))
             death_rate_list.append(new)
     sorted_death_rate_list = sorted(death_rate_list, key = lambda x: x[1], reverse = True)
     top_countries = []

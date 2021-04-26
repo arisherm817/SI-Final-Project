@@ -17,8 +17,8 @@ def set_up_database(name):
     return cur, conn
 
 def get_vaccine_number_data():
-    """Returns a dictionary with the key being the name of the country and the value being a tuple in the format (Percent Vaccinated, Total Vaccinations). """
-    """Uses BeautifulSoup to read the countries name, the countries percent vaccinated, and total vaccinations"""
+    """Returns a list of tuples in the format (Country, Total Vaccinations). """
+    """Uses BeautifulSoup to read the countries name and total vaccinations"""
     nums = []
     url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
     r = requests.get(url)
@@ -40,29 +40,31 @@ def get_vaccine_number_data():
     return sorted_data
 
 def get_vaccine_percent_data():
-        percents = []
-        url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
-        r = requests.get(url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        divs = soup.find('div', id = 'covid19-container')
-        table = divs.find('table')
-        trs = table.find_all('tr')
-        for i in trs[2:193]: 
-            tds = i.find_all('td')
-            td = tds[0]
-            name = td.find('a')
-            country = name.text.strip()
-            percent = tds[2].text.strip('%')
-            if percent == '--' or country == "EU" or float(percent) == 0 or float(percent) > 100:
-                continue
-            else:
-                percents.append((country, float(percent)))
-        sorted_data = sorted(percents, key = lambda x: x[1], reverse = True)
-        return sorted_data
+    """Returns a list of tuples in the format (Country, Percent Vaccinated). """
+    """Uses BeautifulSoup to read the countries name and percent vaccinated"""
+    percents = []
+    url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    divs = soup.find('div', id = 'covid19-container')
+    table = divs.find('table')
+    trs = table.find_all('tr')
+    for i in trs[2:193]: 
+        tds = i.find_all('td')
+        td = tds[0]
+        name = td.find('a')
+        country = name.text.strip()
+        percent = tds[2].text.strip('%')
+        if percent == '--' or country == "EU" or float(percent) == 0 or float(percent) > 100:
+            continue
+        else:
+            percents.append((country, float(percent)))
+    sorted_data = sorted(percents, key = lambda x: x[1], reverse = True)
+    return sorted_data
     
 
 def fill_vaccine_number_table(cur, conn): 
-    """ Fills the Vaccine Table table with the country names, the total number of vaccinations in the country, and the percent of the country population that is vaccinated"""
+    """ Fills the Vaccine Number Table table with the country names and the total number of vaccinations in the country"""
     cur.execute("CREATE TABLE IF NOT EXISTS VaccineNumberTable (country_id TEXT PRIMARY KEY, country TEXT, vaccinated INTEGER)")
     countries = get_vaccine_number_data()
 
@@ -84,7 +86,7 @@ def fill_vaccine_number_table(cur, conn):
     conn.commit()
 
 def fill_vaccine_percent_table(cur, conn): 
-    """ Fills the Vaccine Table table with the country names, the total number of vaccinations in the country, and the percent of the country population that is vaccinated"""
+    """ Fills the Vaccine Table table with the country names and the percent of the country population that is vaccinated"""
     cur.execute("CREATE TABLE IF NOT EXISTS VaccinePercentTable (country_id TEXT PRIMARY KEY, percent NUMBER)")
     countries = get_vaccine_percent_data()
     count = 0
@@ -106,7 +108,7 @@ def fill_vaccine_percent_table(cur, conn):
 
 
 def set_up_vaccine_table(cur, conn):
-    """Creates two tables. One table that contain the country vaccination rankings and another table that has vaccine data for each country """
+    """Creates two tables. One table that contain the country vaccination numbers and another table that has vaccine percent data for each country """
     cur.execute("CREATE TABLE IF NOT EXISTS VaccinePercentTable (country_id INTEGER PRIMARY KEY, percent NUMBER)")
     cur.execute("CREATE TABLE IF NOT EXISTS VaccineNumberTable (country_id INTEGER PRIMARY KEY, country TEXT, vaccinated INTEGER)")
     conn.commit()
@@ -124,7 +126,7 @@ def calculate_average_percent_vaccinated(cur):
     return round(percent, 2)
 
 def top_ten_percentages(cur):
-    """Sorts the countries by percent vaccinated and returns a list of tuples with the country name and percent vaccinated """
+    """Sorts the countries by percent vaccinated and returns a list of tuples with the country id and percent vaccinated """
     cur.execute('SELECT country_id, percent FROM VaccinePercentTable')
     countries = cur.fetchall()
     countries.sort(key = lambda x: x[1], reverse = True) 
@@ -156,7 +158,7 @@ def write_data_file(filename, cur, conn):
         outFile.close()
 
 def main():
-    """Calls the functions set_up_database(), set_up_vaccine_tables(), fill_vaccine_table(), and write_data_file(). Closes the database connection. """
+    """Calls the functions set_up_database(), set_up_vaccine_tables(), fill_vaccine_number_table(), fill_vaccine_percent_table(), and write_data_file(). Closes the database connection. """
     cur, conn = set_up_database('vaccine.db')
     set_up_vaccine_table(cur, conn)
     fill_vaccine_number_table(cur,conn)
