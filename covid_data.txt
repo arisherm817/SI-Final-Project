@@ -1,28 +1,28 @@
 Top Ten COVID-19 Death Rates per Country
 =====================================================
 
-1.  Mexico
-2.  Sudan
-3.  Egypt
-4.  Somalia
-5.  Ecuador
-6.  Afghanistan
-7.  Bolivia
-8.  Zimbabwe
-9.  Bulgaria
-10.  Guatemala
+1.  Mexico has a Covid death rate of 9.2%
+2.  Sudan has a Covid death rate of 6.8%
+3.  Egypt has a Covid death rate of 5.9%
+4.  Somalia has a Covid death rate of 5.1%
+5.  Ecuador has a Covid death rate of 4.9%
+6.  China has a Covid death rate of 4.7%
+7.  Afghanistan has a Covid death rate of 4.4%
+8.  Bolivia has a Covid death rate of 4.3%
+9.  Bosnia and Herzegovina has a Covid death rate of 4.2%
+10.  Zimbabwe has a Covid death rate of 4.1%
 
 
 Top Ten Fewest Number of Confirmed Cases per Vaccinated Person per Country
 ======================================================
 
-1.  Bhutan
-2.  Fiji
-3.  Cambodia
-4.  Mauritius
-5.  New Zealand
-6.  Singapore
-7.  Thailand
-8.  Barbados
-9.  Finland
-10.  Angola
+1.  China
+2.  Bhutan
+3.  Fiji
+4.  Saint Kitts and Nevis
+5.  Cambodia
+6.  Dominica
+7.  Mauritius
+8.  Solomon Islands
+9.  Grenada
+10.  Australia

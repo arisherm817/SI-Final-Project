@@ -16,11 +16,10 @@ def set_up_database(name):
     cur = conn.cursor()
     return cur, conn
 
-def get_vaccine_data():
+def get_vaccine_number_data():
     """Returns a dictionary with the key being the name of the country and the value being a tuple in the format (Percent Vaccinated, Total Vaccinations). """
     """Uses BeautifulSoup to read the countries name, the countries percent vaccinated, and total vaccinations"""
-    data = {}
-    sorted_dict = {}
+    nums = []
     url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -32,68 +31,89 @@ def get_vaccine_data():
         td = tds[0]
         name = td.find('a')
         country = name.text.strip()
-        number = tds[2]
-        percent = number.text.strip('%')
         number = (tds[1].text.replace(',', ''))
-        if percent == '--' or country == "EU":
+        if country == "EU":
             continue
         else:
-            data[country] = (float(percent), int(number))
-    sorted_data = sorted(data.keys(), key = lambda x: data[x][1], reverse = True)
-    for d in data:
-        if d in sorted_data[:125]:
-            sorted_dict[d] = (data[d], sorted_data.index(d)+1)
-    return sorted_dict
+            nums.append((country, int(number)))
+    sorted_data = sorted(nums, key = lambda x: x[1], reverse = True)
+    return sorted_data
+
+def get_vaccine_percent_data():
+        percents = []
+        url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        divs = soup.find('div', id = 'covid19-container')
+        table = divs.find('table')
+        trs = table.find_all('tr')
+        for i in trs[2:193]: 
+            tds = i.find_all('td')
+            td = tds[0]
+            name = td.find('a')
+            country = name.text.strip()
+            percent = tds[2].text.strip('%')
+            if percent == '--' or country == "EU" or float(percent) == 0 or float(percent) > 100:
+                continue
+            else:
+                percents.append((country, float(percent)))
+        sorted_data = sorted(percents, key = lambda x: x[1], reverse = True)
+        return sorted_data
     
 
-def fill_country_rank_table(cur, conn): 
-    """ Fills the Country Ranks table with the country names and their ranking for total number of vaccinations"""
-    cur.execute("CREATE TABLE IF NOT EXISTS CountryRanks (country TEXT PRIMARY KEY, rank INTEGER)")
-    countries = get_vaccine_data()
-    countries_list = []
-
-    while len(countries_list) < len(countries):
-        count = 0
-        for country in countries:
-                if country in countries_list:
-                    continue
-                else:
-                    cur.execute("INSERT OR IGNORE INTO CountryRanks (country, rank) VALUES (?,?)", (country, countries[country][1]))
-                    count += 1
-                    countries_list.append(country)
-                if count == 25:
-                    break
-    conn.commit()
-    
-def fill_vaccine_table(cur, conn): 
+def fill_vaccine_number_table(cur, conn): 
     """ Fills the Vaccine Table table with the country names, the total number of vaccinations in the country, and the percent of the country population that is vaccinated"""
-    cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country TEXT PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
-    countries = get_vaccine_data()
-    countries_list = []
+    cur.execute("CREATE TABLE IF NOT EXISTS VaccineNumberTable (country_id TEXT PRIMARY KEY, country TEXT, vaccinated INTEGER)")
+    countries = get_vaccine_number_data()
 
-    while len(countries_list) < len(countries):
-        count = 0
-        for country in countries:
-                if country in countries_list:
-                    continue
-                else:
-                    cur.execute("INSERT OR IGNORE INTO VaccineTable (country, vaccinated, percent) VALUES (?,?,?)", (country, countries[country][0][1], countries[country][0][0]))
-                    count += 1
-                    countries_list.append(country)
-                if count == 25:
-                    break
+    cur.execute("SELECT MAX(country_id) FROM VaccineNumberTable")
+    max_id = cur.fetchone()[0]
+    num_entries = 25
+    if (type(max_id) != int):
+        id_num = 0
+    elif (len(countries) - max_id) < 25:
+        id_num = int(max_id)
+        num_entries = len(countries) - max_id
+    else:
+        id_num = int(max_id)
+    
+    for country in countries[id_num:id_num + num_entries]:
+        cur.execute("INSERT OR IGNORE INTO VaccineNumberTable (country_id, country, vaccinated) VALUES (?,?,?)", (id_num+1, country[0], country[1]))
+        id_num += 1
+        
+    conn.commit()
+
+def fill_vaccine_percent_table(cur, conn): 
+    """ Fills the Vaccine Table table with the country names, the total number of vaccinations in the country, and the percent of the country population that is vaccinated"""
+    cur.execute("CREATE TABLE IF NOT EXISTS VaccinePercentTable (country_id TEXT PRIMARY KEY, percent NUMBER)")
+    countries = get_vaccine_percent_data()
+    count = 0
+    
+    for i in range(167):
+        statement = "SELECT country_id FROM VaccineNumberTable WHERE country = '{}'".format(countries[i][0])
+        cur.execute(statement)
+        id_num = cur.fetchone()[0]
+        statement1 = "SELECT percent FROM VaccinePercentTable WHERE country_id = {}".format(id_num)
+        cur.execute(statement1)
+        j = cur.fetchone()
+        if j == None:
+            cur.execute("INSERT OR IGNORE INTO VaccinePercentTable (country_id, percent) VALUES (?,?)", (id_num, countries[i][1]))
+            count += 1
+        if count == 25:
+            break
+        
     conn.commit()
 
 
-def set_up_vaccine_tables(cur, conn):
+def set_up_vaccine_table(cur, conn):
     """Creates two tables. One table that contain the country vaccination rankings and another table that has vaccine data for each country """
-    cur.execute("CREATE TABLE IF NOT EXISTS CountryRanks (country TEXT PRIMARY KEY, rank INTEGER)")
-    cur.execute("CREATE TABLE IF NOT EXISTS VaccineTable (country TEXT PRIMARY KEY, vaccinated INTEGER, percent NUMBER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS VaccinePercentTable (country_id INTEGER PRIMARY KEY, percent NUMBER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS VaccineNumberTable (country_id INTEGER PRIMARY KEY, country TEXT, vaccinated INTEGER)")
     conn.commit()
 
 def calculate_average_percent_vaccinated(cur):
     """Calculates the world average percent vaccinated"""
-    cur.execute('SELECT percent FROM VaccineTable')
+    cur.execute('SELECT percent FROM VaccinePercentTable')
     percent_list = cur.fetchall()
     total_percent = 0
     num_countries = 0
@@ -103,18 +123,18 @@ def calculate_average_percent_vaccinated(cur):
     percent = (total_percent/num_countries)
     return round(percent, 2)
 
-def sort_percentages(cur):
+def top_ten_percentages(cur):
     """Sorts the countries by percent vaccinated and returns a list of tuples with the country name and percent vaccinated """
-    cur.execute('SELECT country, percent FROM VaccineTable')
+    cur.execute('SELECT country_id, percent FROM VaccinePercentTable')
     countries = cur.fetchall()
     countries.sort(key = lambda x: x[1], reverse = True) 
-    return countries
+    return countries[:10]
 
 def write_data_file(filename, cur, conn):
     """Wrties the world average percent vaccinated and the top ten high vaccination percentages to a filename that is given in the input"""
-    cur.execute('SELECT country FROM CountryRanks')
-    countries = cur.fetchall()
-    if len(countries) == 125:
+    cur.execute('SELECT country_id FROM VaccinePercentTable')
+    num_countries = len(cur.fetchall())
+    if num_countries == 167:
 
         path = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
@@ -125,25 +145,25 @@ def write_data_file(filename, cur, conn):
         outFile.write(percent + "%" + "\n\n")
         outFile.write("Top Ten Highest Vaccination Percentages in the World\n")
         outFile.write("======================================================\n\n")
-        country_list = sort_percentages(cur)
-        outFile.write("1. " + str(country_list[0][0]) + "\n")
-        outFile.write("2. " + str(country_list[1][0]) + "\n")
-        outFile.write("3. " + str(country_list[2][0]) + "\n")
-        outFile.write("4. " + str(country_list[3][0]) + "\n")
-        outFile.write("5. " + str(country_list[4][0]) + "\n")
-        outFile.write("6. " + str(country_list[5][0]) + "\n")
-        outFile.write("7. " + str(country_list[6][0]) + "\n")
-        outFile.write("8. " + str(country_list[7][0]) + "\n")
-        outFile.write("9. " + str(country_list[8][0]) + "\n")
-        outFile.write("10. " + str(country_list[9][0]) + "\n")
+        country_list = top_ten_percentages(cur)
+        count = 1
+        for country in country_list:
+            statement = "SELECT country FROM VaccineNumberTable WHERE country_id = {}".format(country[0])
+            cur.execute(statement)
+            country1 = cur.fetchone()[0]
+            outFile.write(str(count) + ". " + str(country1) + " has about " + str(country[1]) + "% of its population vaccinated\n")
+            count += 1
         outFile.close()
 
 def main():
-    """Calls the functions set_up_database(), set_up_vaccine_tables(), fill_country_rank_table(), fill_vaccine_table(), and write_data_file(). Closes the database connection. """
+    """Calls the functions set_up_database(), set_up_vaccine_tables(), fill_vaccine_table(), and write_data_file(). Closes the database connection. """
     cur, conn = set_up_database('vaccine.db')
-    set_up_vaccine_tables(cur, conn)
-    fill_country_rank_table(cur, conn)
-    fill_vaccine_table(cur,conn)
+    set_up_vaccine_table(cur, conn)
+    fill_vaccine_number_table(cur,conn)
+    cur.execute("SELECT MAX(country_id) FROM VaccineNumberTable")
+    max_id = cur.fetchone()[0]
+    if (max_id == 190):
+        fill_vaccine_percent_table(cur,conn)
     write_data_file("vaccine_data.txt", cur, conn)
     conn.close()
 
