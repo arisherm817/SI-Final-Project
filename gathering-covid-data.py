@@ -20,7 +20,7 @@ def set_up_covid_table(cur, conn):
         cur.execute(statement)
         id_num = cur.fetchone()
         if country['Country'] == 'United States of America':
-            id_num = (1,)
+            id_num = (2,)
         if id_num != None:
             statement = "SELECT confirmed FROM Covid WHERE country_id = {}".format(id_num[0])
             cur.execute(statement)
@@ -76,7 +76,7 @@ def write_data_file(filename, cur, conn):
     """Writes the top ten Covid-19 death rates per country anf the top ten fewest number of confirmed cases per vaccinated person to the filename given in the input """
     cur.execute('SELECT country_id FROM Covid')
     num_countries = len(cur.fetchall())
-    if num_countries == 150:
+    if num_countries == 151:
 
         path = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
@@ -99,7 +99,6 @@ def write_data_file(filename, cur, conn):
         outFile.write("======================================================\n\n")
         cases_per = calculate_cases_per_vaccine(cur, conn)
         count = 1
-        print(cases_per)
         for i in cases_per[:10]:  
             outFile.write(str(count) + '.  ' + str(i[0]) + "\n")
             count += 1

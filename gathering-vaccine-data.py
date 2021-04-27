@@ -17,8 +17,7 @@ def set_up_database(name):
     return cur, conn
 
 def get_vaccine_number_data():
-    """Returns a list of tuples in the format (Country, Total Vaccinations). """
-    """Uses BeautifulSoup to read the countries name and total vaccinations"""
+    """Takes in a website url and uses BeautifulSoup to locate and  read the countries name and total vaccinations. Returns a list of tuples in the format (Country, Total Vaccinations)."""
     nums = []
     url = 'https://en.wikipedia.org/wiki/Deployment_of_COVID-19_vaccines'
     r = requests.get(url)

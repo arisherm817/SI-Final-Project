@@ -12,7 +12,7 @@ import json
 
 
 def main():
-
+    """ Takes in no inputs and returns nothing. Fetches data from the vaccine database and loads the information into lists. Usings the imputed python package, plotly to create a scatterplot of confirmed cases vs. number of vaccinations per country and a barplot of the ten countries with the highest death rates. """
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path + '/vaccine.db')
     cur = conn.cursor()
